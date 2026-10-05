@@ -1,0 +1,61 @@
+{
+    # 全局选项
+    admin off
+    email admin@{$DOMAIN}
+}
+
+# 主站点
+{$DOMAIN} {
+    # API 网关 (new-api) - 根路径
+    reverse_proxy new-api:3000
+
+    # 管理后台 (sub2api) - /admin 路径
+    handle_path /admin/* {
+        reverse_proxy sub2api:8080
+    }
+
+    # 健康检查端点
+    handle /health {
+        respond "OK" 200
+    }
+
+    # 日志
+    log {
+        output file /data/access.log {
+            roll_size 100mb
+            roll_keep 5
+        }
+    }
+
+    # 安全头
+    header {
+        # 启用 HSTS
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        # 防止 MIME 类型嗅探
+        X-Content-Type-Options "nosniff"
+        # 点击劫持保护
+        X-Frame-Options "SAMEORIGIN"
+        # XSS 保护
+        X-XSS-Protection "1; mode=block"
+        # 隐藏服务器信息
+        -Server
+    }
+
+    # 编码
+    encode gzip zstd
+}
+
+# localhost 开发模式（不强制 HTTPS）
+localhost {
+    reverse_proxy new-api:3000
+
+    handle_path /admin/* {
+        reverse_proxy sub2api:8080
+    }
+
+    handle /health {
+        respond "OK" 200
+    }
+
+    encode gzip
+}

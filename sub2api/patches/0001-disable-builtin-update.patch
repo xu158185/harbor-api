@@ -1,0 +1,12 @@
+diff --git a/frontend/src/components/common/VersionBadge.vue b/frontend/src/components/common/VersionBadge.vue
+index 1234567..abcdefg 100644
+--- a/frontend/src/components/common/VersionBadge.vue
++++ b/frontend/src/components/common/VersionBadge.vue
+@@ -235,6 +235,7 @@ async function checkForUpdates() {
+       <a-button
+         v-if="isReleaseBuild"
+         type="primary"
++        style="display: none;"
+         :loading="updating"
+         :disabled="!hasUpdate || updating"
+         @click="handleUpdate"

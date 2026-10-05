@@ -1,0 +1,177 @@
+name: Build HarborAPI new-api Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      force_build:
+        description: '强制构建（即使版本未变化）'
+        required: false
+        type: boolean
+        default: false
+  schedule:
+    # 每天 UTC 02:00 (北京时间 10:00) 检查更新
+    - cron: '0 2 * * *'
+  push:
+    paths:
+      - 'new-api/**'
+      - '.github/workflows/build-new-api.yml'
+
+env:
+  UPSTREAM_REPO: QuantumNous/new-api
+  IMAGE_NAME: harbor-new-api
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: 获取当前追踪的版本
+        id: current
+        run: |
+          CURRENT_VERSION=$(cat new-api/version.txt)
+          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "📦 当前版本: $CURRENT_VERSION"
+
+      - name: 获取上游最新版本
+        id: upstream
+        run: |
+          LATEST_VERSION=$(curl -sL https://api.github.com/repos/${{ env.UPSTREAM_REPO }}/releases/latest | jq -r .tag_name)
+          echo "version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          echo "🔍 上游最新版本: $LATEST_VERSION"
+
+      - name: 检查是否需要构建
+        id: should_build
+        run: |
+          FORCE="${{ inputs.force_build }}"
+          CURRENT="${{ steps.current.outputs.version }}"
+          LATEST="${{ steps.upstream.outputs.version }}"
+
+          if [[ "$FORCE" == "true" ]]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "reason=强制构建" >> $GITHUB_OUTPUT
+          elif [[ "$CURRENT" != "$LATEST" ]]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "reason=检测到新版本 $LATEST" >> $GITHUB_OUTPUT
+          else
+            echo "should_build=false" >> $GITHUB_OUTPUT
+            echo "reason=版本无变化" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 决策
+        run: |
+          echo "🤔 是否构建: ${{ steps.should_build.outputs.should_build }}"
+          echo "📋 原因: ${{ steps.should_build.outputs.reason }}"
+
+      - name: Set up QEMU
+        if: steps.should_build.outputs.should_build == 'true'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        if: steps.should_build.outputs.should_build == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        if: steps.should_build.outputs.should_build == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Docker Hub
+        if: steps.should_build.outputs.should_build == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 拉取上游镜像
+        if: steps.should_build.outputs.should_build == 'true'
+        run: |
+          UPSTREAM_VERSION="${{ steps.upstream.outputs.version }}"
+          echo "📥 拉取 calciumion/new-api:$UPSTREAM_VERSION"
+          docker pull calciumion/new-api:$UPSTREAM_VERSION
+          docker tag calciumion/new-api:$UPSTREAM_VERSION base-image:latest
+
+      - name: 创建 Dockerfile
+        if: steps.should_build.outputs.should_build == 'true'
+        run: |
+          cat > Dockerfile.harbor <<'EOF'
+          FROM base-image:latest
+
+          # 复制叠加层文件
+          COPY new-api/overlay/ /app/
+
+          # 应用补丁（如果前端资源已编译好）
+          # 注意: new-api 的前端是预编译的，直接替换文件即可
+          # 如果需要修改源码后重新编译，需要更复杂的构建流程
+
+          # 确保权限正确
+          RUN chown -R 1000:1000 /app
+
+          # HarborAPI 标识
+          LABEL org.opencontainers.image.title="HarborAPI new-api"
+          LABEL org.opencontainers.image.description="HarborAPI customized new-api"
+          LABEL org.opencontainers.image.source="https://github.com/${{ github.repository }}"
+          LABEL org.opencontainers.image.version="${{ steps.upstream.outputs.version }}"
+          EOF
+
+      - name: Build and push
+        if: steps.should_build.outputs.should_build == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.harbor
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.upstream.outputs.version }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.upstream.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: 更新 version.txt
+        if: steps.should_build.outputs.should_build == 'true'
+        run: |
+          LATEST="${{ steps.upstream.outputs.version }}"
+          echo "$LATEST" > new-api/version.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add new-api/version.txt
+          git diff --cached --quiet || git commit -m "chore: bump new-api to $LATEST [skip ci]"
+          git push
+
+      - name: 创建 Release 说明
+        if: steps.should_build.outputs.should_build == 'true'
+        run: |
+          cat > release_notes.md <<EOF
+          ## HarborAPI new-api ${{ steps.upstream.outputs.version }}
+
+          基于上游 [new-api ${{ steps.upstream.outputs.version }}](https://github.com/${{ env.UPSTREAM_REPO }}/releases/tag/${{ steps.upstream.outputs.version }})
+
+          ### 定制内容
+          - ✨ HarborAPI 主题（暖色调大地色系）
+          - 🎨 自定义 Logo 和品牌标识
+          - 📦 自动构建多架构镜像 (amd64/arm64)
+
+          ### 使用方法
+          \`\`\`bash
+          docker pull ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.upstream.outputs.version }}
+          # 或
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.upstream.outputs.version }}
+          \`\`\`
+
+          ### 上游更新日志
+          查看完整上游更新: https://github.com/${{ env.UPSTREAM_REPO }}/releases/tag/${{ steps.upstream.outputs.version }}
+          EOF
+
+          echo "📝 Release 说明已生成"
+          cat release_notes.md

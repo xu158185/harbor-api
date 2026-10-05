@@ -1,0 +1,29 @@
+# Environment
+.env
+.env.local
+
+# Data directories
+data/
+logs/
+postgres_data/
+redis_data/
+caddy_data/
+caddy_config/
+
+# Backups
+*.backup.*
+backups/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Temporary
+*.tmp
+*.log
+__pycache__/

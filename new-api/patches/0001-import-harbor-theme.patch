@@ -1,0 +1,14 @@
+diff --git a/web/src/styles/index.css b/web/src/styles/index.css
+index 1234567..abcdefg 100644
+--- a/web/src/styles/index.css
++++ b/web/src/styles/index.css
+@@ -28,6 +28,9 @@
+ @import './theme-presets.css';
+ @import './markdown.css';
+
++/* HarborAPI 自定义主题 */
++@import './harbor-theme.css';
++
+ :root {
+   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+   line-height: 1.5;

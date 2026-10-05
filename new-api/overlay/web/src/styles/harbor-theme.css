@@ -1,0 +1,254 @@
+/* HarborAPI 主题 - 暖色调与衬线字体 */
+
+:root {
+  /* 调色板 - 温暖大地色系 */
+  --harbor-cream: #F7F4EF;
+  --harbor-surface: #FBF9F5;
+  --harbor-white: #FFFFFF;
+  --harbor-border: #E7E1D7;
+  --harbor-ink: #1F2421;
+  --harbor-muted: #5C635D;
+  --harbor-charcoal: #1F2421;
+  --harbor-terracotta: #C4612F;
+  --harbor-terracotta-hover: #A94E22;
+  --harbor-tint: #F2E3D6;
+
+  /* 覆盖默认背景 */
+  --background: var(--harbor-cream);
+  --surface: var(--harbor-surface);
+  --border-color: var(--harbor-border);
+  --text-primary: var(--harbor-ink);
+  --text-secondary: var(--harbor-muted);
+
+  /* 主色调 */
+  --primary-color: var(--harbor-terracotta);
+  --primary-hover: var(--harbor-terracotta-hover);
+  --primary-light: var(--harbor-tint);
+
+  /* 字体 */
+  --font-display: 'Fraunces', 'Playfair Display', Georgia, serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* 全局背景 */
+body {
+  background-color: var(--harbor-cream);
+  color: var(--harbor-ink);
+  font-family: var(--font-body);
+  font-weight: 300;
+}
+
+/* 标题使用衬线字体 */
+h1, h2, h3, h4, h5, h6,
+.heading,
+.page-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--harbor-ink);
+}
+
+/* 卡片与表面 */
+.card,
+.panel,
+.surface,
+.ui.segment {
+  background-color: var(--harbor-white);
+  border: 1px solid var(--harbor-border);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(31, 36, 33, 0.05);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.card:hover,
+.panel:hover {
+  box-shadow: 0 4px 12px rgba(31, 36, 33, 0.08);
+  transform: translateY(-2px);
+}
+
+/* 按钮 - 完全圆角 */
+.button,
+.ui.button,
+button {
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-weight: 400;
+  transition: all 0.2s;
+}
+
+.button.primary,
+.ui.button.primary {
+  background-color: var(--harbor-terracotta);
+  color: white;
+}
+
+.button.primary:hover,
+.ui.button.primary:hover {
+  background-color: var(--harbor-terracotta-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(196, 97, 47, 0.25);
+}
+
+/* Eyebrow 标签 */
+.eyebrow,
+.tag,
+.label.small {
+  background-color: var(--harbor-tint);
+  color: var(--harbor-terracotta);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* 导航栏 - 毛玻璃效果 */
+.navbar,
+.header,
+.ui.menu {
+  background-color: rgba(251, 249, 245, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--harbor-border);
+}
+
+/* 链接 */
+a {
+  color: var(--harbor-terracotta);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: var(--harbor-terracotta-hover);
+}
+
+/* 输入框 */
+input,
+textarea,
+select,
+.ui.input > input {
+  background-color: var(--harbor-white);
+  border: 1px solid var(--harbor-border);
+  border-radius: 8px;
+  color: var(--harbor-ink);
+  font-family: var(--font-body);
+  font-weight: 300;
+}
+
+input:focus,
+textarea:focus,
+select:focus,
+.ui.input > input:focus {
+  border-color: var(--harbor-terracotta);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--harbor-tint);
+}
+
+/* 表格 */
+table,
+.ui.table {
+  background-color: var(--harbor-white);
+  border: 1px solid var(--harbor-border);
+}
+
+table thead tr th,
+.ui.table thead tr th {
+  background-color: var(--harbor-surface);
+  color: var(--harbor-ink);
+  font-weight: 500;
+}
+
+table tbody tr:hover,
+.ui.table tbody tr:hover {
+  background-color: var(--harbor-tint);
+}
+
+/* 价格卡片中间高亮（如果有定价页面） */
+.pricing-card.featured,
+.plan-card.featured {
+  border: 2px solid var(--harbor-terracotta);
+  position: relative;
+}
+
+.pricing-card.featured::before {
+  content: 'Most loved';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--harbor-terracotta);
+  color: white;
+  padding: 4px 16px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* 状态指示器 */
+.status-chip,
+.badge {
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-chip.success {
+  background-color: #D4EDDA;
+  color: #155724;
+}
+
+.status-chip.error {
+  background-color: #F8D7DA;
+  color: #721C24;
+}
+
+.status-chip.warning {
+  background-color: var(--harbor-tint);
+  color: var(--harbor-terracotta);
+}
+
+/* 图标芯片 */
+.icon-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--harbor-tint);
+  color: var(--harbor-terracotta);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+/* 分隔线 */
+hr,
+.divider {
+  border: none;
+  border-top: 1px solid var(--harbor-border);
+  margin: 2rem 0;
+}
+
+/* 加载指示器 */
+.loading,
+.spinner {
+  color: var(--harbor-terracotta);
+}
+
+/* 模态框 */
+.modal,
+.ui.modal {
+  background-color: var(--harbor-white);
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(31, 36, 33, 0.15);
+}
+
+/* 工具提示 */
+.tooltip {
+  background-color: var(--harbor-charcoal);
+  color: var(--harbor-white);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.813rem;
+}
