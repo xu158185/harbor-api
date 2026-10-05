@@ -75,7 +75,7 @@ nano .env  # 修改 DOMAIN=your-domain.com
 - **API 网关**: `https://your-domain.com`
 - **管理后台**: `https://your-domain.com/admin`
 
-详细步骤见 [部署指南](DEPLOYMENT.md)
+> 📖 **初次使用？** 参考 [5 分钟快速开始](QUICKSTART.md) | 详细步骤见 [部署指南](DEPLOYMENT.md)
 
 ## 🔄 更新服务
 
